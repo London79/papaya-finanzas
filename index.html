@@ -942,9 +942,9 @@ function renderContribBloc(){
 function renderAnioComp(){
   const keys=getKeys();
   const labels=keys.map(sl);
-  // VN directa del Excel (sin IVA)
-  const curr=keys.map(k=>M(MONTHLY[k].ing_cp+MONTHLY[k].ing_mp));
-  const prev=keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M(MONTHLY[pk].ing_cp+MONTHLY[pk].ing_mp):null;});
+  // Venta BRUTA = VN × 1.19
+  const curr=keys.map(k=>M((MONTHLY[k].ing_cp+MONTHLY[k].ing_mp)*1.19));
+  const prev=keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M((MONTHLY[pk].ing_cp+MONTHLY[pk].ing_mp)*1.19):null;});
   const pctGrowth=keys.map((k,i)=>{
     const p=prev[i]; const cu=curr[i];
     if(!p||p===0) return null;
