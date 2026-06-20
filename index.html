@@ -305,14 +305,25 @@ tr:last-child td{border-bottom:none;}
     <div id="tab-plan" class="tab-pane">
       <div id="plan-kpis" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(148px,1fr));margin-bottom:12px;"></div>
 
-      <div class="card" style="margin-bottom:12px;">
-        <p class="card-title">Cumplimiento Plan 2026 · Ventas brutas reales vs plan</p>
-        <div class="legend">
-          <span class="li"><span class="ld" style="background:#4d9eff"></span>Real 2026</span>
-          <span class="li"><span class="ld" style="background:#f5a623;opacity:.5"></span>Plan 2026</span>
-          <span class="li"><span class="ld" style="background:#22d09a;border-radius:50%"></span>Cumplimiento %</span>
+      <div style="display:grid;grid-template-columns:4fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="card">
+          <p class="card-title">Cumplimiento Plan 2026 · Ventas brutas reales vs plan</p>
+          <div class="legend">
+            <span class="li"><span class="ld" style="background:#4d9eff"></span>Real 2026</span>
+            <span class="li"><span class="ld" style="background:#f5a623;opacity:.5"></span>Plan 2026</span>
+            <span class="li"><span class="ld" style="background:#22d09a;border-radius:50%"></span>Cumplimiento %</span>
+          </div>
+          <div class="ch" style="height:260px"><canvas id="cPlan"></canvas></div>
         </div>
-        <div class="ch" style="height:260px"><canvas id="cPlan"></canvas></div>
+        <div class="card">
+          <p class="card-title" id="planAcumTitle">Acumulado al mes · Plan vs Real</p>
+          <div class="legend">
+            <span class="li"><span class="ld" style="background:#4d9eff"></span>Real acum.</span>
+            <span class="li"><span class="ld" style="background:#f5a623;opacity:.5"></span>Plan acum.</span>
+            <span class="li"><span class="ld" style="background:#22d09a;border-radius:50%"></span>Cumplimiento %</span>
+          </div>
+          <div class="ch" style="height:260px"><canvas id="cPlanAcum"></canvas></div>
+        </div>
       </div>
 
       <div class="card">
@@ -843,30 +854,62 @@ function renderContribBloc(){
     afterDatasetsDraw(chart){
       const ctx2=chart.ctx;
       ctx2.save();
-      // VB labels (dataset 0)
+      // VB barras (dataset 0): monto rotado 90° dentro de barra + % crecimiento encima
       const metaVB=chart.getDatasetMeta(0);
       if(metaVB.visible){
         metaVB.data.forEach((bar,i)=>{
+          const val=M(vb[i]); // convertir a millones
           const g=growthVB[i];
-          if(g===null||g===undefined) return;
-          const txt=(g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%';
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
-          ctx2.fillStyle=g>=0?'#4d9eff':'#f05252';
-          ctx2.fillText(txt,bar.x,bar.y-4);
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+val.toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+          if(g!==null&&g!==undefined){
+            ctx2.font='bold 8px DM Sans,sans-serif';
+            ctx2.textAlign='center';
+            ctx2.fillStyle=g>=0?'#4d9eff':'#f05252';
+            ctx2.fillText((g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%', bar.x, bar.y-5);
+          }
         });
       }
-      // Contrib labels (dataset 1)
+      // Contribución barras (dataset 1): monto rotado + % crecimiento encima
       const metaC=chart.getDatasetMeta(1);
       if(metaC.visible){
         metaC.data.forEach((bar,i)=>{
+          const val=M(contrib[i]); // convertir a millones
           const g=growthContrib[i];
-          if(g===null||g===undefined) return;
-          const txt=(g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%';
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
-          ctx2.fillStyle=g>=0?'#22d09a':'#f05252';
-          ctx2.fillText(txt,bar.x,bar.y-4);
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+val.toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+          if(g!==null&&g!==undefined){
+            ctx2.font='bold 8px DM Sans,sans-serif';
+            ctx2.textAlign='center';
+            ctx2.fillStyle=g>=0?'#22d09a':'#f05252';
+            ctx2.fillText((g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%', bar.x, bar.y-5);
+          }
+        });
+      }
+      // Margen línea (dataset 2): % encima de cada punto
+      const metaM=chart.getDatasetMeta(2);
+      if(metaM.visible){
+        metaM.data.forEach((pt,i)=>{
+          const v=margen[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#f5a623';
+          ctx2.fillText(parseFloat(v).toFixed(1)+'%', pt.x, pt.y-7);
         });
       }
       ctx2.restore();
@@ -919,19 +962,41 @@ function renderAnioComp(){
     id:'anioCompLabels',
     afterDatasetsDraw(chart){
       const ctx2=chart.ctx; ctx2.save();
-      // curr bars (dataset 1)
+      // prev bars (dataset 0): monto rotado en gris
+      const metaPrev=chart.getDatasetMeta(0);
+      if(metaPrev.visible){
+        metaPrev.data.forEach((bar,i)=>{
+          const v=prev[i];
+          if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#6b6b8a';
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+        });
+      }
+      // curr bars (dataset 1): monto rotado en blanco
       const metaCurr=chart.getDatasetMeta(1);
       if(metaCurr.visible){
         metaCurr.data.forEach((bar,i)=>{
           const v=curr[i];
           if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
           ctx2.fillStyle='#eaeaf5';
-          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M',bar.x,bar.y-4);
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
         });
       }
-      // growth line labels (dataset 2)
+      // growth line labels (dataset 2): % encima de cada punto
       const metaG=chart.getDatasetMeta(2);
       if(metaG.visible){
         metaG.data.forEach((pt,i)=>{
@@ -940,7 +1005,7 @@ function renderAnioComp(){
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
           ctx2.fillStyle=v>=0?'#22d09a':'#f05252';
-          ctx2.fillText((v>=0?'▲':'▼')+Math.abs(v).toFixed(1)+'%',pt.x,pt.y-6);
+          ctx2.fillText((v>=0?'▲':'▼')+Math.abs(v).toFixed(1)+'%',pt.x,pt.y-7);
         });
       }
       ctx2.restore();
@@ -1241,15 +1306,21 @@ function comboBarLine(labels,barData,lineData,color,keys){
     afterDatasetsDraw(chart){
       const ctx2=chart.ctx; ctx2.save();
       const meta=chart.getDatasetMeta(0);
-      if(!meta.visible){ctx2.restore();return;}
-      meta.data.forEach((bar,i)=>{
-        const v=barData[i];
-        if(v===null||v===undefined) return;
-        ctx2.font='bold 9px DM Sans,sans-serif';
-        ctx2.textAlign='center';
-        ctx2.fillStyle='#eaeaf5';
-        ctx2.fillText('$'+v.toFixed(1)+'M',bar.x,bar.y-4);
-      });
+      if(meta.visible){
+        meta.data.forEach((bar,i)=>{
+          const v=barData[i];
+          if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+        });
+      }
       // pct line labels
       const metaL=chart.getDatasetMeta(1);
       if(metaL.visible){
@@ -1259,7 +1330,7 @@ function comboBarLine(labels,barData,lineData,color,keys){
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
           ctx2.fillStyle='#f5a623';
-          ctx2.fillText(v.toFixed(1)+'%',pt.x,pt.y-6);
+          ctx2.fillText(parseFloat(v).toFixed(1)+'%',pt.x,pt.y-6);
         });
       }
       ctx2.restore();
@@ -1391,16 +1462,21 @@ function wstChartPct(labels,curr,prev,color,pctData,keys){
     id:'wstVal_'+color,
     afterDatasetsDraw(chart){
       const ctx2=chart.ctx; ctx2.save();
-      // curr bars (dataset index 1)
+      // curr bars (dataset index 1): rotado dentro de barra
       const meta=chart.getDatasetMeta(1);
       if(meta.visible){
         meta.data.forEach((bar,i)=>{
           const v=curr[i];
           if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
           ctx2.fillStyle='#eaeaf5';
-          ctx2.fillText('$'+v.toFixed(1)+'M',bar.x,bar.y-4);
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
         });
       }
       // pct line labels (dataset index 2)
@@ -1412,7 +1488,7 @@ function wstChartPct(labels,curr,prev,color,pctData,keys){
           ctx2.font='bold 9px DM Sans,sans-serif';
           ctx2.textAlign='center';
           ctx2.fillStyle='#2dd4bf';
-          ctx2.fillText(v.toFixed(2)+'%',pt.x,pt.y-6);
+          ctx2.fillText(parseFloat(v).toFixed(2)+'%',pt.x,pt.y-6);
         });
       }
       ctx2.restore();
@@ -1494,17 +1570,53 @@ function renderPlan(){
   const cumplPlugin={
     id:'cumplLabels',
     afterDatasetsDraw(chart){
-      const meta=chart.getDatasetMeta(2); // línea cumplimiento
-      if(!meta.visible) return;
       const ctx2=chart.ctx; ctx2.save();
-      meta.data.forEach((pt,i)=>{
-        const v=chartCump[i];
-        if(v===null) return;
-        ctx2.font='bold 9px DM Sans,sans-serif';
-        ctx2.textAlign='center';
-        ctx2.fillStyle=v>=100?'#22d09a':'#f05252';
-        ctx2.fillText(v.toFixed(1)+'%',pt.x,pt.y-6);
-      });
+      // Plan barras (dataset 0): monto rotado en ámbar
+      const metaPlan=chart.getDatasetMeta(0);
+      if(metaPlan.visible){
+        metaPlan.data.forEach((bar,i)=>{
+          const v=chartPlan[i];
+          if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#f5a623';
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+        });
+      }
+      // Real barras (dataset 1): monto rotado en blanco
+      const metaReal=chart.getDatasetMeta(1);
+      if(metaReal.visible){
+        metaReal.data.forEach((bar,i)=>{
+          const v=chartReal[i];
+          if(v===null||v===undefined) return;
+          const barH=bar.base-bar.y;
+          ctx2.save();
+          ctx2.translate(bar.x, bar.y + barH/2);
+          ctx2.rotate(-Math.PI/2);
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M', 0, 4);
+          ctx2.restore();
+        });
+      }
+      // Línea cumplimiento (dataset 2): % encima de cada punto
+      const metaLine=chart.getDatasetMeta(2);
+      if(metaLine.visible){
+        metaLine.data.forEach((pt,i)=>{
+          const v=chartCump[i];
+          if(v===null) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle=v>=100?'#22d09a':'#f05252';
+          ctx2.fillText(v.toFixed(1)+'%',pt.x,pt.y-6);
+        });
+      }
       ctx2.restore();
     }
   };
@@ -1529,6 +1641,89 @@ function renderPlan(){
       }
     },
     plugins:[cumplPlugin]
+  });
+
+  // ── Gráfico acumulado al último mes con data ──
+  const ultimoConData = rows.filter(r=>r.hasData).slice(-1)[0];
+  const ultimoMes = ultimoConData ? ultimoConData.mes.charAt(0).toUpperCase()+ultimoConData.mes.slice(1) : '—';
+  document.getElementById('planAcumTitle').textContent = `Acumulado a la fecha · Plan vs Real`;
+
+  // Plan acumulado SOLO en meses con venta real > 0 (barras azules)
+  const _planYTD = rows.filter(r=>r.real!==null && r.real>0).reduce((s,r)=>s+r.plan,0);
+  const _realYTD = rows.filter(r=>r.real!==null && r.real>0).reduce((s,r)=>s+r.real,0);
+  const acumPlanVal = M(_planYTD);
+  const acumRealVal = M(_realYTD);
+  const acumCumpVal = acumPlanVal>0 ? +(_realYTD/_planYTD*100).toFixed(1) : 0;
+  console.log('YTD plan:', acumPlanVal, 'real:', acumRealVal, 'cump:', acumCumpVal);
+
+  const acumPlugin={
+    id:'acumPlugin',
+    afterDatasetsDraw(chart){
+      const ctx2=chart.ctx; ctx2.save();
+      // Plan barra (dataset 0)
+      const metaP=chart.getDatasetMeta(0);
+      if(metaP.visible && metaP.data[0]){
+        const bar=metaP.data[0];
+        const barH=bar.base-bar.y;
+        ctx2.save();
+        ctx2.translate(bar.x, bar.y+barH/2);
+        ctx2.rotate(-Math.PI/2);
+        ctx2.font='bold 11px DM Sans,sans-serif';
+        ctx2.textAlign='center';
+        ctx2.fillStyle='#f5a623';
+        ctx2.fillText('$'+acumPlanVal.toFixed(1)+'M',0,4);
+        ctx2.restore();
+      }
+      // Real barra (dataset 1)
+      const metaR=chart.getDatasetMeta(1);
+      if(metaR.visible && metaR.data[0]){
+        const bar=metaR.data[0];
+        const barH=bar.base-bar.y;
+        ctx2.save();
+        ctx2.translate(bar.x, bar.y+barH/2);
+        ctx2.rotate(-Math.PI/2);
+        ctx2.font='bold 11px DM Sans,sans-serif';
+        ctx2.textAlign='center';
+        ctx2.fillStyle='#eaeaf5';
+        ctx2.fillText('$'+acumRealVal.toFixed(1)+'M',0,4);
+        ctx2.restore();
+      }
+      // Línea cumplimiento (dataset 2)
+      const metaL=chart.getDatasetMeta(2);
+      if(metaL.visible && metaL.data[0]){
+        const pt=metaL.data[0];
+        ctx2.font='bold 12px DM Sans,sans-serif';
+        ctx2.textAlign='center';
+        ctx2.fillStyle=acumCumpVal>=100?'#22d09a':'#f05252';
+        ctx2.fillText(acumCumpVal.toFixed(1)+'%',pt.x,pt.y-10);
+      }
+      ctx2.restore();
+    }
+  };
+
+  mkChart('cPlanAcum',{
+    type:'bar',
+    data:{
+      labels:['YTD'],
+      datasets:[
+        {label:'Plan acum.',data:[acumPlanVal],backgroundColor:'#f5a62333',borderColor:'#f5a623',borderWidth:2,order:2},
+        {label:'Real acum.',data:[acumRealVal],backgroundColor:'#4d9eff55',borderColor:'#4d9eff',borderWidth:2,order:2},
+        {label:'Cumplimiento %',data:[acumCumpVal],type:'line',borderColor:'#22d09a',backgroundColor:'transparent',
+         borderWidth:2,pointRadius:8,pointBackgroundColor:acumCumpVal>=100?'#22d09a':'#f05252',
+         yAxisID:'yPct',order:1},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:30}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label==='Cumplimiento %'?`${c.raw}%`:`$${c.raw}M`}}},
+      scales:{
+        x:{ticks:{font:{size:11},color:'#6b6b8a'},grid:{display:false}},
+        y:{...yO(v=>v+'M'),position:'left'},
+        yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false},min:0,max:Math.max(150,acumCumpVal+20)},
+      }
+    },
+    plugins:[acumPlugin]
   });
 
   // Tabla detalle
