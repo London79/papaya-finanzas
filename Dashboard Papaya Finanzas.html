@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Papaya Finanzas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d12;--bg2:#13131a;--bg3:#1a1a24;--bg4:#22222f;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#eaeaf5;--muted:#6b6b8a;
+  --blue:#4d9eff;--green:#22d09a;--red:#f05252;--amber:#f5a623;
+  --pink:#e05b9c;--purple:#a47cff;--accent:#7c6dfa;--teal:#2dd4bf;
+  --r:10px;--rsm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:100vh;}
+
+/* ── PAPAYA LOGO ── */
+.papaya-logo{display:flex;flex-direction:column;align-items:flex-start;line-height:1;user-select:none;}
+.papaya-logo .p-word{font-family:'Playfair Display',serif;font-weight:900;color:#eaeaf5;letter-spacing:-1px;}
+.papaya-logo .f-word{font-family:'Playfair Display',serif;font-weight:700;color:#eaeaf5;letter-spacing:-0.5px;}
+.papaya-logo-lg .p-word{font-size:42px;}
+.papaya-logo-lg .f-word{font-size:36px;}
+.papaya-logo-sm .p-word{font-size:17px;}
+.papaya-logo-sm .f-word{font-size:14px;}
+
+/* ── UPLOAD ── */
+#upload-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;padding:40px 20px;}
+.logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#7c6dfa,#4d9eff);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.upload-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:36px 44px;text-align:center;max-width:460px;width:100%;}
+.upload-card h2{font-size:20px;font-weight:600;letter-spacing:-.3px;margin-bottom:6px;}
+.upload-card>p{color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:24px;}
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:32px 20px;cursor:pointer;transition:.2s;position:relative;}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:rgba(124,109,250,.05);}
+.drop-icon{font-size:32px;margin-bottom:10px;}
+.drop-zone p{color:var(--muted);font-size:12px;}
+.drop-zone strong{color:var(--accent);}
+#fileInput{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+.pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted);}
+.pill span{color:var(--green);margin-right:3px;}
+#upErr{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+#progBar{height:2px;background:var(--bg3);border-radius:2px;margin-top:16px;display:none;}
+#progFill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s;}
+
+/* ── DASHBOARD ── */
+#dashboard{display:none;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.mini-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#7c6dfa,#4d9eff);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.topbar h1{font-size:14px;font-weight:600;}
+.fname{font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:2px 9px;border-radius:20px;}
+.topbar-r{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:var(--rsm);font-size:12px;cursor:pointer;outline:none;font-family:inherit;transition:border-color .2s;}
+select:focus{border-color:var(--accent);}
+.btn-sm{padding:5px 12px;border-radius:var(--rsm);border:1px solid var(--border2);background:transparent;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn-sm:hover{background:var(--bg4);}
+.excl-badge{font-size:10px;color:var(--muted);background:rgba(240,82,82,.1);border:1px solid rgba(240,82,82,.2);padding:2px 9px;border-radius:20px;}
+
+/* TABS */
+.tabs-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px;}
+.tab{padding:9px 16px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+.main{padding:20px 24px;max-width:1400px;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:9px;margin-bottom:20px;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--accent));opacity:.85;}
+.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px;}
+.kpi-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.5px;color:var(--kc,var(--text));}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.kpi-delta{font-size:10px;margin-top:3px;font-weight:500;}
+.kpi-delta.pos{color:var(--green);}
+.kpi-delta.neg{color:var(--red);}
+.kpi-delta.neu{color:var(--muted);}
+
+/* CARDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.card-title{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px;font-weight:500;}
+.ch{position:relative;width:100%;}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* CANAL PILLS */
+.canal-row{display:flex;gap:5px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.canal-lbl{font-size:11px;color:var(--muted);}
+.cpill{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+.cpill:hover{border-color:var(--border2);color:var(--text);}
+.cpill.active{background:rgba(124,109,250,.15);border-color:rgba(124,109,250,.4);color:var(--accent);}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-weight:500;}
+td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+.td-pos{color:var(--green);font-weight:500;}
+.td-neg{color:var(--red);font-weight:500;}
+.td-num{font-family:'DM Mono',monospace;font-size:11px;}
+.td-r{text-align:right;}
+
+/* WESTORAGE */
+.wst-indicator{background:linear-gradient(135deg,rgba(77,158,255,.08),rgba(124,109,250,.08));border:1px solid rgba(77,158,255,.2);border-radius:var(--r);padding:10px 16px;margin-bottom:12px;display:inline-flex;gap:20px;flex-wrap:wrap;align-items:center;max-width:480px;}
+.wst-ind-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;color:var(--blue);}
+.wst-ind-lbl{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.wst-ind-delta{font-size:11px;margin-top:4px;}
+
+@media(max-width:700px){
+  .g2,.g3{grid-template-columns:1fr;}
+  .topbar,.main{padding:12px 14px;}
+  .tabs-bar{padding:0 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- UPLOAD -->
+<div id="upload-screen">
+  <div class="papaya-logo papaya-logo-lg" style="margin-bottom:4px;">
+    <span class="p-word">papaya</span>
+    <span class="f-word">finanzas</span>
+  </div>
+  <div class="upload-card">
+    <h2>Papaya Finanzas</h2>
+    <p>Sube tu Excel con la pestaña <strong>Finanzas Plano</strong> y el dashboard se genera automáticamente.</p>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+      <div class="drop-icon">📂</div>
+      <p><strong>Arrastra tu archivo aquí</strong></p>
+      <p style="margin-top:4px">o haz clic para seleccionarlo</p>
+    </div>
+    <div id="driveStatus" style="margin-top:12px;font-size:12px;color:var(--muted);min-height:16px;"></div>
+    <div id="progBar"><div id="progFill"></div></div>
+    <div id="upErr">⚠ No se encontró la pestaña "Finanzas Plano".</div>
+    <div class="pills">
+      <div class="pill"><span>✓</span>Contribución por canal</div>
+      <div class="pill"><span>✓</span>Comparativo año anterior</div>
+      <div class="pill"><span>✓</span>Marketing &amp; Envíos</div>
+      <div class="pill"><span>✓</span>Westorage</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="papaya-logo papaya-logo-sm">
+      <span class="p-word">papaya</span>
+      <span class="f-word">finanzas</span>
+    </div>
+    <span class="fname" id="fname">—</span>
+    <div class="topbar-r">
+      <span class="excl-badge">Otros Ingresos/Gastos excluidos</span>
+      <div id="filterAnios" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
+      <div id="filterMeses" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
+      <button class="btn-sm" onclick="resetApp()">⟳ Cambiar archivo</button>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab active" onclick="showTab('resumen',this)">Resumen</button>
+    <button class="tab" onclick="showTab('mkt',this)">Marketing &amp; Envíos</button>
+    <button class="tab" onclick="showTab('westorage',this)">Westorage</button>
+    <button class="tab" onclick="showTab('plan',this)">Plan 2026</button>
+  </div>
+
+  <div class="main">
+    <div id="kpis" class="kpi-grid"></div>
+
+    <!-- ═══ RESUMEN ═══ -->
+    <div id="tab-resumen" class="tab-pane active">
+
+      <!-- BLOQUE 1: Ventas & Contribución con canal selector -->
+      <div class="canal-row" style="margin-bottom:10px;">
+        <span class="canal-lbl">Canal:</span>
+        <button class="cpill active" id="cb-all" onclick="setCanal('all',this)">Todos</button>
+        <button class="cpill" id="cb-cp"  onclick="setCanal('CP',this)">Canales Propios</button>
+        <button class="cpill" id="cb-mp"  onclick="setCanal('MP',this)">Marketplaces</button>
+      </div>
+
+      <!-- KPIs de contribución -->
+      <div id="contrib-kpis" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(148px,1fr));margin-bottom:12px;"></div>
+
+      <!-- Gráfico: Ventas + Contribución + Margen -->
+      <div class="card" style="margin-bottom:12px;">
+        <p class="card-title">Ventas brutas · Contribución (barras) — Margen de contribución (línea %)</p>
+        <div class="legend">
+          <span class="li"><span class="ld" style="background:#4d9eff"></span>Ventas brutas</span>
+          <span class="li"><span class="ld" style="background:#22d09a"></span>Contribución</span>
+          <span class="li"><span class="ld" style="background:#f5a623;border-radius:50%"></span>Margen %</span>
+        </div>
+        <div class="ch" style="height:260px"><canvas id="cVentaContrib"></canvas></div>
+      </div>
+
+      <!-- Ventas por año comparativo -->
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Ventas por mes · comparativo año anterior</p>
+          <div class="ch" style="height:220px"><canvas id="cAnioComp"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Ventas por canal · distribución (%)</p>
+          <div class="ch" style="height:220px;position:relative"><canvas id="cCanal"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Distribución gastos + Tabla RO/EBITDA -->
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Distribución de gastos (sin costos de venta)</p>
+          <div class="ch" style="height:210px"><canvas id="cDona"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Resultado operacional &amp; EBITDA · vs año anterior</p>
+          <div class="ch" style="height:160px;margin-bottom:10px"><canvas id="cResumen"></canvas></div>
+          <div class="legend" style="margin-bottom:8px">
+            <span class="li"><span class="ld" style="background:#22d09a;border-radius:50%"></span>Resultado op.</span>
+            <span class="li"><span class="ld" style="background:#2dd4bf;border-radius:50%"></span>EBITDA</span>
+          </div>
+          <div class="tbl-wrap"><table id="tblResumen"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MARKETING & ENVÍOS ═══ -->
+    <div id="tab-mkt" class="tab-pane">
+      <div id="mkt-kpis" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(148px,1fr))"></div>
+
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Mkt canales propios: absoluto y % s/venta propia</p>
+          <div class="legend">
+            <span class="li"><span class="ld" style="background:#a47cff"></span>Gasto mkt (M)</span>
+            <span class="li"><span class="ld" style="background:#f5a623;border-radius:50%"></span>% s/venta</span>
+          </div>
+          <div class="ch" style="height:220px"><canvas id="cMktCP"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Mkt marketplaces: absoluto y % s/venta marketplace</p>
+          <div class="legend">
+            <span class="li"><span class="ld" style="background:#7c6dfa"></span>Gasto mkt (M)</span>
+            <span class="li"><span class="ld" style="background:#f5a623;border-radius:50%"></span>% s/venta</span>
+          </div>
+          <div class="ch" style="height:220px"><canvas id="cMktMP"></canvas></div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Envíos: absoluto (M CLP) y % s/ventas brutas</p>
+          <div class="legend">
+            <span class="li"><span class="ld" style="background:#e05b9c"></span>Envíos (M)</span>
+            <span class="li"><span class="ld" style="background:#f5a623;border-radius:50%"></span>% s/ventas</span>
+          </div>
+          <div class="ch" style="height:220px"><canvas id="cEnv"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Tabla · Marketing &amp; Envíos vs año anterior</p>
+          <div class="tbl-wrap"><table id="tblMkt"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ WESTORAGE ═══ -->
+    <div id="tab-westorage" class="tab-pane">
+      <div id="wst-kpis" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(148px,1fr))"></div>
+
+      <div class="wst-indicator" id="wstIndicator"></div>
+
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Almacenaje Westorage mensual (M CLP)</p>
+          <div class="ch" style="height:210px"><canvas id="cWstAlm"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Packing + Picking mensual (M CLP)</p>
+          <div class="ch" style="height:210px"><canvas id="cWstPP"></canvas></div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <p class="card-title">Llegada mercadería mensual (M CLP)</p>
+          <div class="ch" style="height:210px"><canvas id="cWstLleg"></canvas></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Tabla Westorage · vs año anterior</p>
+          <div class="tbl-wrap"><table id="tblWst"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PLAN 2026 ═══ -->
+    <div id="tab-plan" class="tab-pane">
+      <div id="plan-kpis" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(148px,1fr));margin-bottom:12px;"></div>
+
+      <div class="card" style="margin-bottom:12px;">
+        <p class="card-title">Cumplimiento Plan 2026 · Ventas brutas reales vs plan</p>
+        <div class="legend">
+          <span class="li"><span class="ld" style="background:#4d9eff"></span>Real 2026</span>
+          <span class="li"><span class="ld" style="background:#f5a623;opacity:.5"></span>Plan 2026</span>
+          <span class="li"><span class="ld" style="background:#22d09a;border-radius:50%"></span>Cumplimiento %</span>
+        </div>
+        <div class="ch" style="height:260px"><canvas id="cPlan"></canvas></div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Detalle mensual · Plan vs Real 2026</p>
+        <div class="tbl-wrap"><table id="tblPlan"></table></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
+               'agosto','septiembre','octubre','noviembre','diciembre'];
+const EXCLUIR = new Set(['OTROS INGRESOS','OTROS GASTOS','x']);
+const SHEET  = 'Finanzas Plano';
+
+// Plan de ventas 2026 (venta bruta, CLP) — fijo
+const PLAN_2026 = {
+  enero:      24000000,
+  febrero:    21500000,
+  marzo:      22000000,
+  abril:      22500000,
+  mayo:       22000000,
+  junio:      24500000,
+  julio:      25500000,
+  agosto:     22000000,
+  septiembre: 20000000,
+  octubre:    24000000,
+  noviembre:  36500000,
+  diciembre:  75500000,
+};
+
+let MONTHLY = {};
+let ALL_KEYS = [];
+let currentCanal = 'all';
+const CH = {};
+
+// ══════════════════════════════════════════════
+// GOOGLE DRIVE AUTO-LOAD
+// ══════════════════════════════════════════════
+const DRIVE_FILE_ID = '1-yKupDwxpYFXZOZ4UKU53Tu5z_rVf6bw';
+
+async function loadFromDrive(){
+  const statusEl = document.getElementById('driveStatus');
+  try {
+    statusEl.textContent = 'Cargando archivo desde Google Drive...';
+    // Export as xlsx via Drive API (requires user to be logged in with Drive access)
+    const url = `https://www.googleapis.com/drive/v3/files/${DRIVE_FILE_ID}?alt=media`;
+    const resp = await fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + await getGoogleToken() }
+    });
+    if(!resp.ok) throw new Error('No se pudo acceder al archivo (error '+resp.status+')');
+    const buffer = await resp.arrayBuffer();
+    statusEl.textContent = 'Procesando datos...';
+    const wb = XLSX.read(new Uint8Array(buffer), {type:'array', cellDates:true});
+    if(!wb.SheetNames.includes(SHEET)){
+      statusEl.textContent = '⚠ No se encontró la pestaña "Finanzas Plano".';
+      return;
+    }
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[SHEET], {defval:null});
+    aggregateData(rows);
+    document.getElementById('fname').textContent = 'FINANZAS (version 1).xlsx';
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    buildFilters();
+    renderAll();
+  } catch(err) {
+    statusEl.textContent = '⚠ ' + err.message + ' — sube el archivo manualmente.';
+    console.warn('Drive load failed:', err);
+  }
+}
+
+async function getGoogleToken(){
+  // Try to get token via Google Identity Services (if available)
+  return new Promise((resolve, reject) => {
+    if(window._googleToken){ resolve(window._googleToken); return; }
+    if(!window.google || !window.google.accounts){
+      reject(new Error('Google Identity Services no disponible'));
+      return;
+    }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: '250383632517-20ittlrh0uaohf3r7pl34ic8uffqqrr4.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/drive.readonly',
+      callback: (resp) => {
+        if(resp.error){ reject(new Error(resp.error)); return; }
+        window._googleToken = resp.access_token;
+        resolve(resp.access_token);
+      }
+    });
+    client.requestAccessToken({prompt:''});
+  });
+}
+
+// ══════════════════════════════════════════════
+// UPLOAD
+// ══════════════════════════════════════════════
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('over');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('over'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('over');const f=e.dataTransfer.files[0];if(f)processFile(f);});
+fileInput.addEventListener('change',e=>{if(e.target.files[0])processFile(e.target.files[0]);});
+
+// Auto-load desde Google Drive al abrir
+window.addEventListener('load', ()=>{
+  setTimeout(()=>loadFromDrive(), 800);
+});
+
+function processFile(file){
+  document.getElementById('upErr').style.display='none';
+  document.getElementById('progBar').style.display='block';
+  document.getElementById('progFill').style.width='20%';
+  document.getElementById('fname').textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('progFill').style.width='60%';
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      if(!wb.SheetNames.includes(SHEET)){
+        document.getElementById('upErr').style.display='block';
+        document.getElementById('progBar').style.display='none';
+        return;
+      }
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[SHEET],{defval:null});
+      document.getElementById('progFill').style.width='80%';
+      aggregateData(rows);
+      document.getElementById('progFill').style.width='100%';
+      setTimeout(()=>{
+        document.getElementById('upload-screen').style.display='none';
+        document.getElementById('dashboard').style.display='block';
+        buildFilters();
+        renderAll();
+      },200);
+    }catch(err){
+      document.getElementById('upErr').textContent='⚠ Error: '+err.message;
+      document.getElementById('upErr').style.display='block';
+      document.getElementById('progBar').style.display='none';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function resetApp(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('upload-screen').style.display='flex';
+  fileInput.value='';
+  document.getElementById('progBar').style.display='none';
+  document.getElementById('progFill').style.width='0%';
+  MONTHLY={};ALL_KEYS=[];
+}
+
+// ══════════════════════════════════════════════
+// AGGREGATION
+// ══════════════════════════════════════════════
+function n4c(v){return typeof v==='string'?v.trim():v;}
+
+function aggregateData(rows){
+  MONTHLY={};
+  rows.forEach(r=>{
+    const n1  = r['CUENTA NIVEL 1'];
+    const n2  = r['CUENTA NIVEL 2'];
+    const n3  = r['CUENTA NIVEL 3'];
+    const n4  = n4c(r['CUENTA NIVEL 4']);
+    const n5  = r['CUENTA NIVEL 5'];
+    const mes = typeof r['MES']==='string'?r['MES'].toLowerCase().trim():null;
+    const ano = r['AÑO']?parseInt(r['AÑO']):null;
+    const val = parseFloat(r['MONTO NETO'])||0;
+    if(!n1||EXCLUIR.has(n1)||!mes||!MESES.includes(mes)||!ano||isNaN(ano)) return;
+
+    const key=`${ano}-${mes}`;
+    if(!MONTHLY[key]) MONTHLY[key]={
+      ano,mes,
+      ing_cp:0,ing_mp:0,cos_cp:0,cos_mp:0,
+      gv_cp:0,gv_mp:0,
+      mkt_cp:0,mkt_mp:0,envios:0,
+      gastos_total:0,sal:0,fin:0,log:0,adm:0,imp:0,
+      wst_alm:0,wst_pack:0,wst_pick:0,wst_lleg:0,wst_cour:0,
+    };
+    const m=MONTHLY[key];
+
+    if(n1==='INGRESOS'){
+      if(n4==='CANALES PROPIOS') m.ing_cp+=val; else m.ing_mp+=val;
+    }
+    if(n1==='COSTOS'){
+      if(n4==='CANALES PROPIOS') m.cos_cp+=val; else m.cos_mp+=val;
+    }
+    if(n1==='GASTOS'){
+      m.gastos_total+=val;
+      if(n3==='MARKETING'&&n4==='CANALES PROPIOS') m.mkt_cp+=val;
+      if(n3==='MARKETING'&&n4==='MARKETPLACES')   m.mkt_mp+=val;
+      if(n4==='ENVÍOS')                            m.envios+=val;
+      if(n3==='GASTOS DE VENTA'&&n4==='CANALES PROPIOS') m.gv_cp+=val;
+      if(n3==='GASTOS DE VENTA'&&n4==='MARKETPLACES')    m.gv_mp+=val;
+      if(n2==='SALARIOS')                          m.sal+=val;
+      if(n2==='GASTOS FINANCIEROS')                m.fin+=val;
+      if(n4==='LOGÍSTICA')                         m.log+=val;
+      if(n3==='ADMINISTRACIÓN')                    m.adm+=val;
+      if(n3==='IMPUESTOS')                         m.imp+=val;
+      if(n5==='ALMACENAJE WESTORAGE')              m.wst_alm+=val;
+      if(n5==='WESTORAGE PACKING')                 m.wst_pack+=val;
+      if(n5==='WESTORAGE PICKING')                 m.wst_pick+=val;
+      if(n5==='LLEGADA MERCADERÍA WESTORAGE')      m.wst_lleg+=val;
+      if(n5==='COURIER ENVÍO WESTORAGE')           m.wst_cour+=val;
+    }
+  });
+
+  ALL_KEYS=Object.keys(MONTHLY)
+    .filter(k=>{const d=MONTHLY[k];return d.ing_cp+d.ing_mp+d.cos_cp+d.cos_mp>0;})
+    .sort((a,b)=>{
+      const[ay,am]=a.split('-'),[by,bm]=b.split('-');
+      return ay!==by?(+ay)-(+by):MESES.indexOf(am)-MESES.indexOf(bm);
+    });
+}
+
+// ══════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════
+let selectedAnios=new Set();
+let selectedMeses=new Set();
+
+function buildFilters(){
+  const anos=[...new Set(ALL_KEYS.map(k=>k.split('-')[0]))].sort();
+  const meses=[...new Set(ALL_KEYS.map(k=>k.split('-')[1]))].sort((a,b)=>MESES.indexOf(a)-MESES.indexOf(b));
+
+  const cA=document.getElementById('filterAnios');
+  cA.innerHTML='';
+  // "Todos" año
+  const btnAllA=document.createElement('button');
+  btnAllA.className='cpill active';btnAllA.textContent='Todos';btnAllA.dataset.val='all';
+  btnAllA.onclick=()=>{selectedAnios.clear();updatePillsA();renderAll();};
+  cA.appendChild(btnAllA);
+  anos.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='cpill';b.textContent=a;b.dataset.val=a;
+    b.onclick=()=>{
+      if(selectedAnios.has(a)) selectedAnios.delete(a); else selectedAnios.add(a);
+      updatePillsA();renderAll();
+    };
+    cA.appendChild(b);
+  });
+
+  const cM=document.getElementById('filterMeses');
+  cM.innerHTML='';
+  const btnAllM=document.createElement('button');
+  btnAllM.className='cpill active';btnAllM.textContent='Todos';btnAllM.dataset.val='all';
+  btnAllM.onclick=()=>{selectedMeses.clear();updatePillsM();renderAll();};
+  cM.appendChild(btnAllM);
+  meses.forEach(m=>{
+    const b=document.createElement('button');
+    b.className='cpill';b.textContent=m.charAt(0).toUpperCase()+m.slice(1,3);b.dataset.val=m;
+    b.onclick=()=>{
+      if(selectedMeses.has(m)) selectedMeses.delete(m); else selectedMeses.add(m);
+      updatePillsM();renderAll();
+    };
+    cM.appendChild(b);
+  });
+}
+
+function updatePillsA(){
+  document.querySelectorAll('#filterAnios .cpill').forEach(b=>{
+    if(b.dataset.val==='all') b.classList.toggle('active',selectedAnios.size===0);
+    else b.classList.toggle('active',selectedAnios.has(b.dataset.val));
+  });
+}
+function updatePillsM(){
+  document.querySelectorAll('#filterMeses .cpill').forEach(b=>{
+    if(b.dataset.val==='all') b.classList.toggle('active',selectedMeses.size===0);
+    else b.classList.toggle('active',selectedMeses.has(b.dataset.val));
+  });
+}
+
+function getKeys(){
+  return ALL_KEYS.filter(k=>{
+    const[ky,km]=k.split('-');
+    if(selectedAnios.size>0&&!selectedAnios.has(ky)) return false;
+    if(selectedMeses.size>0&&!selectedMeses.has(km)) return false;
+    return true;
+  });
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function sl(k){const[y,m]=k.split('-');return m.charAt(0).toUpperCase()+m.slice(1,3)+"'"+y.slice(2);}
+function fmt(n){
+  const s=n<0?'-':'';const a=Math.abs(n);
+  if(a>=1e9)return s+(a/1e9).toFixed(1)+'B';
+  if(a>=1e6)return s+(a/1e6).toFixed(1)+'M';
+  if(a>=1e3)return s+(a/1e3).toFixed(0)+'K';
+  return s+Math.round(a).toLocaleString('es-CL');
+}
+function M(v){return +(v/1e6).toFixed(2);}
+function pct(n){return n.toFixed(1)+'%';}
+function sumK(keys,fn){return keys.reduce((s,k)=>s+fn(MONTHLY[k]),0);}
+
+// Get prior year key for a given key
+function priorKey(k){
+  const[y,m]=k.split('-');
+  return `${+y-1}-${m}`;
+}
+
+// Delta display helpers
+function deltaStr(curr,prev){
+  if(!prev||prev===0) return {txt:'—',cls:'neu'};
+  const d=(curr-prev)/Math.abs(prev)*100;
+  const txt=(d>=0?'▲':'▼')+Math.abs(d).toFixed(1)+'%';
+  return {txt,cls:d>=0?'pos':'neg'};
+}
+function deltaPP(curr,prev){
+  if(prev===null||prev===undefined) return {txt:'—',cls:'neu'};
+  const d=curr-prev;
+  const txt=(d>=0?'▲':'▼')+Math.abs(d).toFixed(1)+'pp';
+  return {txt,cls:d>=0?'pos':'neg'};
+}
+
+function mkKpi(label,val,color,sub,delta,deltaClass){
+  return `<div class="kpi" style="--kc:${color}">
+    <p class="kpi-label">${label}</p>
+    <p class="kpi-val">${val}</p>
+    ${sub?`<p class="kpi-sub">${sub}</p>`:''}
+    ${delta?`<p class="kpi-delta ${deltaClass||'neu'}">${delta}</p>`:''}
+  </div>`;
+}
+
+function mkChart(id,cfg){
+  if(CH[id]) CH[id].destroy();
+  CH[id]=new Chart(document.getElementById(id).getContext('2d'),cfg);
+}
+
+const xO=(keys,rot=45)=>({ticks:{font:{size:9},color:'#6b6b8a',maxRotation:rot,autoSkip:keys.length>18,maxTicksLimit:18},grid:{color:'rgba(255,255,255,0.03)'}});
+const yO=(cb)=>({ticks:{font:{size:9},color:'#6b6b8a',callback:cb||undefined},grid:{color:'rgba(255,255,255,0.05)'}});
+const noLegend={legend:{display:false}};
+const ttM=c=>`$${c.raw}M`;
+const ttPct=c=>`${c.raw}%`;
+
+// ══════════════════════════════════════════════
+// TABS & CANAL
+// ══════════════════════════════════════════════
+function showTab(t,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+}
+function setCanal(c,btn){
+  currentCanal=c;
+  document.querySelectorAll('.cpill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderContribBloc();
+}
+
+// ══════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════
+function renderAll(){
+  renderKpis();
+  renderContribBloc();
+  renderAnioComp();
+  renderCanalDist();
+  renderDona();
+  renderGastosTable();
+  renderMkt();
+  renderWestorage();
+  renderPlan();
+}
+
+// ══════════════════════════════════════════════
+// KPIs PRINCIPALES (con venta neta y crecimiento)
+// ══════════════════════════════════════════════
+function renderKpis(){
+  const keys=getKeys();
+
+  const ingCP =sumK(keys,d=>d.ing_cp), ingMP=sumK(keys,d=>d.ing_mp);
+  const cosCP =sumK(keys,d=>d.cos_cp), cosMP=sumK(keys,d=>d.cos_mp);
+  const ingT_n=ingCP+ingMP;               // Venta NETA (directo del Excel, sin IVA)
+  const ingT  =ingT_n*1.19;              // Venta BRUTA (con IVA = neta × 1.19)
+  const cosT  =cosCP+cosMP;
+  const contrib=ingT_n-cosT;             // Contribución sobre venta neta
+  const mrgN  =ingT_n>0?contrib/ingT_n*100:0;
+  const gas   =sumK(keys,d=>d.gastos_total);
+  const res   =ingT_n-cosT-gas;          // RO = VN - Costos - Gastos
+  const fin   =sumK(keys,d=>d.fin);
+  const ebitda=res+fin;
+  const mktCP =sumK(keys,d=>d.mkt_cp);
+
+  const prevKeys=keys.map(priorKey).filter(k=>MONTHLY[k]);
+  const prevIngTN=prevKeys.reduce((s,k)=>s+(MONTHLY[k].ing_cp+MONTHLY[k].ing_mp),0);
+  const prevIngT =prevIngTN*1.19;
+  const prevCosT =prevKeys.reduce((s,k)=>s+(MONTHLY[k].cos_cp+MONTHLY[k].cos_mp),0);
+  const prevContrib=prevIngTN-prevCosT;
+  const prevMrgN=prevIngTN>0?prevContrib/prevIngTN*100:null;
+  const prevGas =prevKeys.reduce((s,k)=>s+MONTHLY[k].gastos_total,0);
+  const prevRes =prevIngTN-prevCosT-prevGas;
+  const prevFin =prevKeys.reduce((s,k)=>s+MONTHLY[k].fin,0);
+  const prevEbitda=prevRes+prevFin;
+
+  const dVB       =deltaStr(ingT,prevIngT);
+  const dVN       =deltaStr(ingT_n,prevIngTN);
+  const dContr    =deltaStr(contrib,prevContrib);
+  const dMrg      =deltaPP(mrgN,prevMrgN);
+  const dRes      =deltaStr(res,prevRes);
+  const dEbitda   =deltaStr(ebitda,prevEbitda);
+  const mktPct    =ingT_n>0?mktCP/ingT_n*100:0;
+  const ebitdaPct =ingT_n>0?ebitda/ingT_n*100:0;
+  const prevEbitdaPct=prevIngTN>0?prevEbitda/prevIngTN*100:null;
+  const dEbitdaPct=deltaPP(ebitdaPct,prevEbitdaPct);
+  const resPct    =ingT_n>0?res/ingT_n*100:0;
+  const prevResPct=prevIngTN>0?prevRes/prevIngTN*100:null;
+  const dResPct   =deltaPP(resPct,prevResPct);
+  const dMktCP    =deltaStr(mktCP,prevKeys.reduce((s,k)=>s+MONTHLY[k].mkt_cp,0)||null);
+  const gasPct    =ingT_n>0?gas/ingT_n*100:0;
+  const dGas      =deltaStr(gas,prevGas||null);
+
+  document.getElementById('kpis').innerHTML=[
+    mkKpi('Venta bruta',fmt(ingT),'var(--blue)',`Neta × 1.19 (con IVA)`,dVB.txt,dVB.cls),
+    mkKpi('Venta neta',fmt(ingT_n),'var(--teal)',`CP: ${fmt(ingCP)} · MP: ${fmt(ingMP)}`,dVN.txt,dVN.cls),
+    mkKpi('Contribución',fmt(contrib),'var(--green)',`${pct(mrgN)} s/venta neta`,dContr.txt,dContr.cls),
+    mkKpi('Margen contrib.',pct(mrgN),'#22d09a',prevMrgN!==null?`Ant: ${pct(prevMrgN)}`:'',dMrg.txt,dMrg.cls),
+    mkKpi('Total gastos',fmt(gas),'var(--amber)',`${pct(gasPct)} s/VN`,dGas.txt,dGas.cls),
+    mkKpi('Resultado op.',fmt(res),res>=0?'var(--green)':'var(--red)',`${pct(resPct)} s/venta neta`,dRes.txt,dRes.cls),
+    mkKpi('EBITDA',fmt(ebitda),ebitda>=0?'var(--teal)':'var(--red)',`${pct(ebitdaPct)} s/venta neta`,dEbitda.txt,dEbitda.cls),
+    mkKpi('Mkt CP',fmt(mktCP),'var(--purple)',`${pct(mktPct)} s/venta neta`,dMktCP.txt,dMktCP.cls),
+  ].join('');
+
+  window._resumenData={
+    ingT,ingT_n,prevIngT,prevIngTN,
+    res,prevRes,resPct,prevResPct,
+    ebitda,prevEbitda,ebitdaPct,prevEbitdaPct,
+    dRes,dResPct,dEbitda,dEbitdaPct,
+  };
+}
+
+// ══════════════════════════════════════════════
+// CONTRIBUCIÓN BLOQUE (con canal selector)
+// ══════════════════════════════════════════════
+function renderContribBloc(){
+  const keys=getKeys();
+  const c=currentCanal;
+
+  // VN = ing directo (sin IVA), VB = VN * 1.19
+  const vn =keys.map(k=>c==='CP'?MONTHLY[k].ing_cp:c==='MP'?MONTHLY[k].ing_mp:MONTHLY[k].ing_cp+MONTHLY[k].ing_mp);
+  const vb =vn.map(v=>v*1.19);
+  const cos=keys.map(k=>c==='CP'?MONTHLY[k].cos_cp:c==='MP'?MONTHLY[k].cos_mp:MONTHLY[k].cos_cp+MONTHLY[k].cos_mp);
+  const contrib=vn.map((v,i)=>v-cos[i]);           // contribución sobre VN
+  const margen =vn.map((v,i)=>v>0?+((v-cos[i])/v*100).toFixed(1):0); // margen sobre VN
+  const labels =keys.map(sl);
+
+  const totVN =vn.reduce((s,v)=>s+v,0);
+  const totVB =totVN*1.19;
+  const totCos=cos.reduce((s,v)=>s+v,0);
+  const totC  =totVN-totCos;
+  const totMrg=totVN>0?totC/totVN*100:0;
+
+  const prevKeys=keys.map(priorKey).filter(k=>MONTHLY[k]);
+  const prevVN =prevKeys.reduce((s,k)=>s+(c==='CP'?MONTHLY[k].ing_cp:c==='MP'?MONTHLY[k].ing_mp:MONTHLY[k].ing_cp+MONTHLY[k].ing_mp),0);
+  const prevVB =prevVN*1.19;
+  const prevCos=prevKeys.reduce((s,k)=>s+(c==='CP'?MONTHLY[k].cos_cp:c==='MP'?MONTHLY[k].cos_mp:MONTHLY[k].cos_cp+MONTHLY[k].cos_mp),0);
+  const prevC  =prevVN-prevCos;
+  const prevMrg=prevVN>0?prevC/prevVN*100:null;
+
+  const dVB =deltaStr(totVB,prevVB);
+  const dC  =deltaStr(totC,prevC);
+  const dMrg=deltaPP(totMrg,prevMrg);
+
+  const yearsInKeys=[...new Set(keys.map(k=>k.split('-')[0]))];
+  let ventaAcum=0,ventaAcumPrev=0,cosAcum=0,cosAcumPrev=0;
+  yearsInKeys.forEach(y=>{
+    MESES.forEach(m=>{
+      const k=`${y}-${m}`;
+      if(MONTHLY[k]){
+        const v=c==='CP'?MONTHLY[k].ing_cp:c==='MP'?MONTHLY[k].ing_mp:MONTHLY[k].ing_cp+MONTHLY[k].ing_mp;
+        const co=c==='CP'?MONTHLY[k].cos_cp:c==='MP'?MONTHLY[k].cos_mp:MONTHLY[k].cos_cp+MONTHLY[k].cos_mp;
+        ventaAcum+=v; cosAcum+=co;
+      }
+      const pk=`${+y-1}-${m}`;
+      if(MONTHLY[pk]){
+        const v=c==='CP'?MONTHLY[pk].ing_cp:c==='MP'?MONTHLY[pk].ing_mp:MONTHLY[pk].ing_cp+MONTHLY[pk].ing_mp;
+        const co=c==='CP'?MONTHLY[pk].cos_cp:c==='MP'?MONTHLY[pk].cos_mp:MONTHLY[pk].cos_cp+MONTHLY[pk].cos_mp;
+        ventaAcumPrev+=v; cosAcumPrev+=co;
+      }
+    });
+  });
+  const mrgAcum    =ventaAcum>0?(ventaAcum-cosAcum)/ventaAcum*100:0;
+  const prevMrgAcum=ventaAcumPrev>0?(ventaAcumPrev-cosAcumPrev)/ventaAcumPrev*100:null;
+  const dVBacum =deltaStr(ventaAcum,ventaAcumPrev||null);
+  const dMrgAcum=deltaPP(mrgAcum,prevMrgAcum);
+  const dVN_c   =deltaStr(totVN,prevVN);
+
+  document.getElementById('contrib-kpis').innerHTML=[
+    mkKpi('Venta neta',fmt(totVN),'var(--teal)',`Canal: ${c==='all'?'Todos':c}`,dVN_c.txt,dVN_c.cls),
+    mkKpi('Venta bruta',fmt(totVB),'var(--blue)',`Neta × 1.19 (con IVA)`),
+    mkKpi('Costo de ventas',fmt(totCos),'var(--red)'),
+    mkKpi('Contribución',fmt(totC),'var(--green)',`${pct(totMrg)} s/VN`,dC.txt,dC.cls),
+    mkKpi('Margen contrib.',pct(totMrg),totMrg>=0?'var(--green)':'var(--red)',prevMrg!==null?`Ant: ${pct(prevMrg)}`:'',dMrg.txt,dMrg.cls),
+    mkKpi('Venta acumulada año',fmt(ventaAcum),'var(--blue)',ventaAcumPrev?`Ant: ${fmt(ventaAcumPrev)}`:'',dVBacum.txt,dVBacum.cls),
+    mkKpi('Margen acumulado año',pct(mrgAcum),mrgAcum>=0?'var(--green)':'var(--red)',prevMrgAcum!==null?`Ant: ${pct(prevMrgAcum)}`:'' ,dMrgAcum.txt,dMrgAcum.cls),
+  ].join('');
+
+  // % crecimiento VN vs año anterior por mes
+  const prevKeysC=keys.map(priorKey);
+  const growthVB=keys.map((k,i)=>{
+    const pk=prevKeysC[i]; const pm=MONTHLY[pk];
+    if(!pm) return null;
+    const pvn=c==='CP'?pm.ing_cp:c==='MP'?pm.ing_mp:pm.ing_cp+pm.ing_mp;
+    const pvb=pvn*1.19; // VB año anterior = VN anterior × 1.19
+    if(!pvb||pvb===0) return null;
+    return +((vb[i]-pvb)/pvb*100).toFixed(1);
+  });
+
+  // Plugin inline para mostrar % crecimiento encima de barra VB
+  // % crecimiento Contribución vs año anterior
+  const growthContrib=keys.map((k,i)=>{
+    const pk=prevKeysC[i]; const pm=MONTHLY[pk];
+    if(!pm) return null;
+    const pvn=c==='CP'?pm.ing_cp:c==='MP'?pm.ing_mp:pm.ing_cp+pm.ing_mp;
+    const pcos=c==='CP'?pm.cos_cp:c==='MP'?pm.cos_mp:pm.cos_cp+pm.cos_mp;
+    const pc=pvn-pcos;
+    if(pc===0) return null;
+    return +((contrib[i]-pc)/Math.abs(pc)*100).toFixed(1);
+  });
+
+  const growthPlugin={
+    id:'growthLabels',
+    afterDatasetsDraw(chart){
+      const ctx2=chart.ctx;
+      ctx2.save();
+      // VB labels (dataset 0)
+      const metaVB=chart.getDatasetMeta(0);
+      if(metaVB.visible){
+        metaVB.data.forEach((bar,i)=>{
+          const g=growthVB[i];
+          if(g===null||g===undefined) return;
+          const txt=(g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%';
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle=g>=0?'#4d9eff':'#f05252';
+          ctx2.fillText(txt,bar.x,bar.y-4);
+        });
+      }
+      // Contrib labels (dataset 1)
+      const metaC=chart.getDatasetMeta(1);
+      if(metaC.visible){
+        metaC.data.forEach((bar,i)=>{
+          const g=growthContrib[i];
+          if(g===null||g===undefined) return;
+          const txt=(g>=0?'▲':'▼')+Math.abs(g).toFixed(1)+'%';
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle=g>=0?'#22d09a':'#f05252';
+          ctx2.fillText(txt,bar.x,bar.y-4);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+
+  mkChart('cVentaContrib',{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Ventas brutas',data:vb.map(M),backgroundColor:'#4d9eff33',borderColor:'#4d9eff',borderWidth:1,order:2},
+      {label:'Contribución', data:contrib.map(M),backgroundColor:contrib.map(v=>v>=0?'#22d09a55':'#f0525255'),borderColor:contrib.map(v=>v>=0?'#22d09a':'#f05252'),borderWidth:1,order:2},
+      {label:'Margen % (s/VN)',data:margen,type:'line',borderColor:'#f5a623',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f5a623',yAxisID:'yPct',order:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label.includes('Margen')?`${c.raw}%`:`$${c.raw}M`}}},
+      scales:{
+        x:xO(keys),
+        y:{...yO(v=>v+'M'),position:'left'},
+        yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false},min:0},
+      }
+    },
+    plugins:[growthPlugin]
+  });
+}
+
+// ══════════════════════════════════════════════
+// COMPARATIVO AÑO ANTERIOR
+// ══════════════════════════════════════════════
+function renderAnioComp(){
+  const keys=getKeys();
+  const labels=keys.map(sl);
+  // VN directa del Excel (sin IVA)
+  const curr=keys.map(k=>M(MONTHLY[k].ing_cp+MONTHLY[k].ing_mp));
+  const prev=keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M(MONTHLY[pk].ing_cp+MONTHLY[pk].ing_mp):null;});
+  const pctGrowth=keys.map((k,i)=>{
+    const p=prev[i]; const cu=curr[i];
+    if(!p||p===0) return null;
+    return +((cu-p)/p*100).toFixed(1);
+  });
+
+  // Labels año: si hay un solo año, mostrar ese año y el anterior exacto
+  const anosEnKeys=[...new Set(keys.map(k=>k.split('-')[0]))].sort();
+  const multiAnio=anosEnKeys.length>1;
+  const anoActual=anosEnKeys[anosEnKeys.length-1]||'Actual';
+  const anoAntLbl=multiAnio?'Año anterior':String(+anoActual-1);
+  const anoActLbl=multiAnio?'Año actual':anoActual;
+
+  const anioCompPlugin={
+    id:'anioCompLabels',
+    afterDatasetsDraw(chart){
+      const ctx2=chart.ctx; ctx2.save();
+      // curr bars (dataset 1)
+      const metaCurr=chart.getDatasetMeta(1);
+      if(metaCurr.visible){
+        metaCurr.data.forEach((bar,i)=>{
+          const v=curr[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+parseFloat(v).toFixed(1)+'M',bar.x,bar.y-4);
+        });
+      }
+      // growth line labels (dataset 2)
+      const metaG=chart.getDatasetMeta(2);
+      if(metaG.visible){
+        metaG.data.forEach((pt,i)=>{
+          const v=pctGrowth[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle=v>=0?'#22d09a':'#f05252';
+          ctx2.fillText((v>=0?'▲':'▼')+Math.abs(v).toFixed(1)+'%',pt.x,pt.y-6);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+
+  mkChart('cAnioComp',{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:anoAntLbl, data:prev,backgroundColor:'rgba(107,107,138,0.3)',borderColor:'#6b6b8a',borderWidth:1,order:2},
+      {label:anoActLbl, data:curr,backgroundColor:'#4d9eff55',borderColor:'#4d9eff',borderWidth:1,order:2},
+      {label:'Crecimiento %',data:pctGrowth,type:'line',borderColor:'#22d09a',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:pctGrowth.map(v=>v===null?'transparent':v>=0?'#22d09a':'#f05252'),yAxisID:'yPct',order:1,spanGaps:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{
+        legend:{display:true,labels:{font:{size:10},boxWidth:10,color:'#6b6b8a',padding:10}},
+        tooltip:{callbacks:{label:c=>c.dataset.label==='Crecimiento %'?(c.raw===null?'—':`${c.raw}%`):`$${c.raw}M`}}
+      },
+      scales:{x:xO(keys),y:{...yO(v=>v+'M'),position:'left'},yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false}}}
+    },
+    plugins:[anioCompPlugin]
+  });
+}
+
+// ══════════════════════════════════════════════
+// CANAL DISTRIBUCIÓN
+// ══════════════════════════════════════════════
+function renderCanalDist(){
+  const keys=getKeys();
+  const totCP=sumK(keys,d=>d.ing_cp);
+  const totMP=sumK(keys,d=>d.ing_mp);
+  const total=totCP+totMP;
+  const pCP=total>0?(totCP/total*100).toFixed(1):0;
+  const pMP=total>0?(totMP/total*100).toFixed(1):0;
+
+  // Plugin para labels sobre el pie
+  const totalM=M(total);
+  const pieLabelPlugin={
+    id:'pieLabelPlugin',
+    afterDatasetsDraw(chart){
+      const {ctx,data}=chart;
+      const ds=data.datasets[0].data;
+      const sumDs=ds.reduce((a,b)=>a+b,0);
+      ctx.save();
+      chart.getDatasetMeta(0).data.forEach((arc,i)=>{
+        const {x,y,startAngle,endAngle,outerRadius}=arc;
+        const angle=(startAngle+endAngle)/2;
+        const r=outerRadius*0.65;
+        const lx=x+Math.cos(angle)*r;
+        const ly=y+Math.sin(angle)*r;
+        const val=ds[i];
+        const p=sumDs>0?(val/sumDs*100).toFixed(1):'0.0';
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.font='bold 12px DM Sans,sans-serif';
+        ctx.fillStyle='#eaeaf5';
+        ctx.fillText(`$${val.toFixed(1)}M`,lx,ly-8);
+        ctx.font='bold 11px DM Sans,sans-serif';
+        ctx.fillStyle=['#4d9eff','#a47cff'][i]||'#eaeaf5';
+        ctx.fillText(`${p}%`,lx,ly+8);
+      });
+      ctx.restore();
+    }
+  };
+  const pieColors=['#4d9eff','#7c6dfa'];
+  mkChart('cCanal',{type:'pie',
+    data:{
+      labels:['Canales Propios','Marketplaces'],
+      datasets:[{data:[M(totCP),M(totMP)],
+        backgroundColor:['#4d9eff44','#7c6dfa44'],
+        borderColor:pieColors,borderWidth:2}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:30},
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,color:'#6b6b8a',padding:10}},
+               tooltip:{callbacks:{label:c=>{const s=c.dataset.data.reduce((a,b)=>a+b,0);const p=s>0?(c.raw/s*100).toFixed(1):0;return `${c.label}: $${c.raw.toFixed(1)}M (${p}%)`;}}}}
+    },
+    plugins:[pieLabelPlugin]
+  });
+}
+
+// ══════════════════════════════════════════════
+// DONA SOLO GASTOS
+// ══════════════════════════════════════════════
+function renderDona(){
+  const keys=getKeys();
+  const sal=sumK(keys,d=>d.sal);
+  const fin=sumK(keys,d=>d.fin);
+  const log=sumK(keys,d=>d.log);
+  const adm=sumK(keys,d=>d.adm);
+  const mkt=sumK(keys,d=>d.mkt_cp+d.mkt_mp);
+  const env=sumK(keys,d=>Math.max(0,d.envios));
+  const tot=sumK(keys,d=>d.gastos_total);
+  const otro=Math.max(0,tot-sal-fin-log-adm-mkt-env);
+
+  const rawLabels=['Salarios','Financiero','Logística','Adm.','Marketing','Envíos','Otros'];
+  const rawVals  =[M(sal),M(fin),M(log),M(adm),M(mkt),M(env),M(otro)];
+  const rawColors=['#a47cff','#4d9eff','#22d09a','#f5a623','#7c6dfa','#e05b9c','#6b6b8a'];
+
+  // Ordenar mayor a menor
+  const order=[...rawVals.keys()].sort((a,b)=>rawVals[b]-rawVals[a]);
+  const donaLabels=order.map(i=>rawLabels[i]);
+  const donaVals  =order.map(i=>rawVals[i]);
+  const donaColors=order.map(i=>rawColors[i]);
+  const donaTotal =donaVals.reduce((s,v)=>s+v,0);
+
+  // Plugin para rótulos sobre el gráfico (categoría + %)
+  const donaLabelPlugin={
+    id:'donaLabelPlugin',
+    afterDatasetsDraw(chart){
+      const {ctx}=chart;
+      const ds=chart.getDatasetMeta(0);
+      ctx.save();
+      ds.data.forEach((arc,i)=>{
+        const pct=donaTotal>0?(donaVals[i]/donaTotal*100):0;
+        if(pct<5) return; // omitir segmentos muy pequeños
+        const {x,y,startAngle,endAngle,outerRadius,innerRadius}=arc;
+        const angle=(startAngle+endAngle)/2;
+        const r=(outerRadius+innerRadius)/2;
+        const lx=x+Math.cos(angle)*r;
+        const ly=y+Math.sin(angle)*r;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font='bold 10px DM Sans,sans-serif';
+        ctx.fillStyle='#fff';
+        ctx.fillText(donaLabels[i],lx,ly-7);
+        ctx.font='9px DM Sans,sans-serif';
+        ctx.fillText(pct.toFixed(1)+'%',lx,ly+6);
+      });
+      ctx.restore();
+    }
+  };
+
+  // Leyenda debajo en 2 columnas
+  const legHtml=donaLabels.map((lbl,i)=>{
+    const p=donaTotal>0?(donaVals[i]/donaTotal*100).toFixed(1):0;
+    return `<div style="display:flex;align-items:center;gap:5px;font-size:10px;margin-bottom:3px;">
+      <span style="width:8px;height:8px;border-radius:2px;background:${donaColors[i]};flex-shrink:0;display:inline-block;"></span>
+      <span style="color:#eaeaf5;font-weight:500;">${lbl}</span>
+      <span style="margin-left:auto;font-family:'DM Mono',monospace;color:${donaColors[i]};">${p}%</span>
+    </div>`;
+  }).join('');
+  let legEl=document.getElementById('donaLegend');
+  if(!legEl){
+    legEl=document.createElement('div');
+    legEl.id='donaLegend';
+    document.getElementById('cDona').closest('.card').appendChild(legEl);
+  }
+  legEl.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin-top:10px;';
+  legEl.innerHTML=legHtml;
+
+  mkChart('cDona',{type:'doughnut',
+    data:{labels:donaLabels,
+      datasets:[{data:donaVals,backgroundColor:donaColors,borderWidth:1,borderColor:'rgba(0,0,0,.2)'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'52%',
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{const p=donaTotal>0?(c.raw/donaTotal*100).toFixed(1):0;return `$${c.raw}M · ${p}%`;}}}}
+    },
+    plugins:[donaLabelPlugin]
+  });
+}
+
+// ══════════════════════════════════════════════
+// TABLA RESUMEN: RO Y EBITDA VS AÑO ANTERIOR
+// ══════════════════════════════════════════════
+function renderGastosTable(){
+  const d=window._resumenData;
+  if(!d){return;}
+  const {ingT_n,prevIngTN,res,prevRes,ebitda,prevEbitda}=d;
+
+  // Gráfico de líneas mensual RO + EBITDA
+  const keys=getKeys();
+  const labels=keys.map(sl);
+  const roMes=keys.map(k=>{
+    const vn=MONTHLY[k].ing_cp+MONTHLY[k].ing_mp; // VN directa
+    return M(vn-MONTHLY[k].cos_cp-MONTHLY[k].cos_mp-MONTHLY[k].gastos_total);
+  });
+  const ebtMes=keys.map((k,i)=>+(roMes[i]+M(MONTHLY[k].fin)).toFixed(2));
+  if(document.getElementById('cResumen')){
+    mkChart('cResumen',{type:'line',data:{labels,datasets:[
+      {label:'Resultado op.',data:roMes,borderColor:'#22d09a',backgroundColor:'rgba(34,208,154,0.08)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:roMes.map(v=>v>=0?'#22d09a':'#f05252'),borderWidth:2},
+      {label:'EBITDA',       data:ebtMes,borderColor:'#2dd4bf',backgroundColor:'transparent',tension:0.3,pointRadius:3,pointBackgroundColor:'#2dd4bf',borderWidth:2,borderDash:[4,3]},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`$${c.raw}M`}}},
+      scales:{x:xO(keys),y:{...yO(v=>v+'M'),afterDataLimits(s){s.max=Math.max(s.max,0)*1.1;s.min=Math.min(s.min,0)*1.1;}}}
+    }});
+  }
+
+  const dRes=deltaStr(res,prevRes||null);
+  const dEbt=deltaStr(ebitda,prevEbitda||null);
+  const roPct  =ingT_n>0?+(res/ingT_n*100).toFixed(1):0;
+  const ebtPct =ingT_n>0?+(ebitda/ingT_n*100).toFixed(1):0;
+  const proPct =prevIngTN>0?+(prevRes/prevIngTN*100).toFixed(1):null;
+  const pebtPct=prevIngTN>0?+(prevEbitda/prevIngTN*100).toFixed(1):null;
+  const dRoPct =deltaPP(roPct,proPct);
+  const dEbtPct=deltaPP(ebtPct,pebtPct);
+
+  const rows=[
+    {lbl:'Resultado operacional', curr:res,   prev:prevRes,   currPct:roPct,  prevPct:proPct,  dAbs:dRes, dPct:dRoPct},
+    {lbl:'EBITDA',                curr:ebitda,prev:prevEbitda,currPct:ebtPct, prevPct:pebtPct, dAbs:dEbt, dPct:dEbtPct},
+  ].map(r=>`<tr>
+    <td style="font-weight:500">${r.lbl}</td>
+    <td class="td-r td-num" style="color:${r.curr>=0?'var(--green)':'var(--red)'}">${fmt(r.curr)}</td>
+    <td class="td-r td-num" style="color:var(--muted)">${r.currPct.toFixed(1)}%</td>
+    <td class="td-r td-num" style="color:var(--muted)">${r.prev?fmt(r.prev):'—'}</td>
+    <td class="td-r td-num" style="color:var(--muted)">${r.prevPct!==null?r.prevPct.toFixed(1)+'%':'—'}</td>
+    <td class="td-r ${r.dAbs.cls==='pos'?'td-pos':r.dAbs.cls==='neg'?'td-neg':''}">${r.dAbs.txt}</td>
+    <td class="td-r ${r.dPct.cls==='pos'?'td-pos':r.dPct.cls==='neg'?'td-neg':''}">${r.dPct.txt}</td>
+  </tr>`).join('');
+
+  document.getElementById('tblResumen').innerHTML=`
+    <thead><tr>
+      <th>Ítem</th>
+      <th class="td-r">Actual</th><th class="td-r">% VN</th>
+      <th class="td-r">Año ant.</th><th class="td-r">% VN ant.</th>
+      <th class="td-r">Var abs.</th><th class="td-r">Var pp</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+// ══════════════════════════════════════════════
+// MARKETING & ENVÍOS
+// ══════════════════════════════════════════════
+function renderMkt(){
+  const keys=getKeys();
+  const labels=keys.map(sl);
+  const prevKeys=keys.map(priorKey).filter(k=>MONTHLY[k]);
+
+  const totMCP =sumK(keys,d=>d.mkt_cp);
+  const totMMP =sumK(keys,d=>d.mkt_mp);
+  const totEnv =sumK(keys,d=>d.envios);
+  const totICP =sumK(keys,d=>d.ing_cp);
+  const totIMP =sumK(keys,d=>d.ing_mp);
+  const totVB  =totICP+totIMP;
+  const prevMCP=prevKeys.reduce((s,k)=>s+MONTHLY[k].mkt_cp,0);
+  const prevMMP=prevKeys.reduce((s,k)=>s+MONTHLY[k].mkt_mp,0);
+  const prevEnv=prevKeys.reduce((s,k)=>s+MONTHLY[k].envios,0);
+  const dMCP=deltaStr(totMCP,prevMCP);
+  const dMMP=deltaStr(totMMP,prevMMP);
+  const dEnv=deltaStr(totEnv,prevEnv);
+  const totVN_mkt=totICP+totIMP; // VN directa
+  const pMCP=totVN_mkt>0?totMCP/totVN_mkt*100:0;
+  const pMMP=totVN_mkt>0?totMMP/totVN_mkt*100:0;
+  const pEnv=totVN_mkt>0?totEnv/totVN_mkt*100:0;
+
+  document.getElementById('mkt-kpis').innerHTML=[
+    mkKpi('Mkt canales propios',fmt(totMCP),'var(--purple)',`${pct(pMCP)} s/venta neta`,dMCP.txt,dMCP.cls),
+    mkKpi('Mkt marketplaces',fmt(totMMP),'var(--accent)',`${pct(pMMP)} s/venta neta`,dMMP.txt,dMMP.cls),
+    mkKpi('Total marketing',fmt(totMCP+totMMP),'var(--muted)',`${pct(totVN_mkt>0?(totMCP+totMMP)/totVN_mkt*100:0)} s/VN`),
+    mkKpi('Gasto envíos',fmt(totEnv),'var(--pink)',`${pct(pEnv)} s/venta neta`,dEnv.txt,dEnv.cls),
+  ].join('');
+
+  // Gráfico MKT CP: barras + línea %
+  const mktCPabs=keys.map(k=>M(MONTHLY[k].mkt_cp));
+  const mktCPpct=keys.map(k=>{const vn=MONTHLY[k].ing_cp+MONTHLY[k].ing_mp;return vn>0?+(MONTHLY[k].mkt_cp/vn*100).toFixed(1):0;});
+  mkChart('cMktCP',comboBarLine(labels,mktCPabs,mktCPpct,'#a47cff',keys));
+
+  // Gráfico MKT MP: barras + línea %
+  const mktMPabs=keys.map(k=>M(MONTHLY[k].mkt_mp));
+  const mktMPpct=keys.map(k=>{const vn=MONTHLY[k].ing_cp+MONTHLY[k].ing_mp;return vn>0?+(MONTHLY[k].mkt_mp/vn*100).toFixed(1):0;});
+  mkChart('cMktMP',comboBarLine(labels,mktMPabs,mktMPpct,'#7c6dfa',keys));
+
+  // Gráfico Envíos: barras + línea %
+  const envAbs=keys.map(k=>M(MONTHLY[k].envios));
+  const envPct=keys.map(k=>{const vn=MONTHLY[k].ing_cp+MONTHLY[k].ing_mp;return vn>0?+(MONTHLY[k].envios/vn*100).toFixed(1):0;});
+  mkChart('cEnv',comboBarLine(labels,envAbs,envPct,'#e05b9c',keys));
+
+  // Tabla
+  const mesRows=keys.map(k=>{
+    const pk=priorKey(k);
+    const pm=MONTHLY[pk];
+    const mcp=MONTHLY[k].mkt_cp, mmp=MONTHLY[k].mkt_mp, env=MONTHLY[k].envios;
+    const pmcp=pm?pm.mkt_cp:null, pmmp=pm?pm.mkt_mp:null, penv=pm?pm.envios:null;
+    const d1=deltaStr(mcp,pmcp),d2=deltaStr(mmp,pmmp),d3=deltaStr(env,penv);
+    return `<tr>
+      <td>${sl(k)}</td>
+      <td class="td-r td-num">${fmt(mcp)}</td>
+      <td class="td-r ${d1.cls==='pos'?'td-pos':d1.cls==='neg'?'td-neg':''}">${d1.txt}</td>
+      <td class="td-r td-num">${fmt(mmp)}</td>
+      <td class="td-r ${d2.cls==='pos'?'td-pos':d2.cls==='neg'?'td-neg':''}">${d2.txt}</td>
+      <td class="td-r td-num">${fmt(env)}</td>
+      <td class="td-r ${d3.cls==='pos'?'td-pos':d3.cls==='neg'?'td-neg':''}">${d3.txt}</td>
+    </tr>`;
+  });
+  document.getElementById('tblMkt').innerHTML=`
+    <thead><tr>
+      <th>Mes</th>
+      <th class="td-r">Mkt CP</th><th class="td-r">Var</th>
+      <th class="td-r">Mkt MP</th><th class="td-r">Var</th>
+      <th class="td-r">Envíos</th><th class="td-r">Var</th>
+    </tr></thead>
+    <tbody>${mesRows.join('')}</tbody>`;
+}
+
+function comboBarLine(labels,barData,lineData,color,keys){
+  // Plugin: value labels on bars
+  const barValPlugin={
+    id:'barValLabels_'+color,
+    afterDatasetsDraw(chart){
+      const ctx2=chart.ctx; ctx2.save();
+      const meta=chart.getDatasetMeta(0);
+      if(!meta.visible){ctx2.restore();return;}
+      meta.data.forEach((bar,i)=>{
+        const v=barData[i];
+        if(v===null||v===undefined) return;
+        ctx2.font='bold 9px DM Sans,sans-serif';
+        ctx2.textAlign='center';
+        ctx2.fillStyle='#eaeaf5';
+        ctx2.fillText('$'+v.toFixed(1)+'M',bar.x,bar.y-4);
+      });
+      // pct line labels
+      const metaL=chart.getDatasetMeta(1);
+      if(metaL.visible){
+        metaL.data.forEach((pt,i)=>{
+          const v=lineData[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#f5a623';
+          ctx2.fillText(v.toFixed(1)+'%',pt.x,pt.y-6);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+  return {
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Valor (M)',data:barData,backgroundColor:color+'55',borderColor:color,borderWidth:1,order:2},
+      {label:'% s/venta',data:lineData,type:'line',borderColor:'#f5a623',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f5a623',yAxisID:'yPct',order:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label==='% s/venta'?`${c.raw}%`:`$${c.raw}M`}}},
+      scales:{x:xO(keys),y:{...yO(v=>v+'M'),position:'left'},yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false},min:0}}
+    },
+    plugins:[barValPlugin]
+  };
+}
+
+// ══════════════════════════════════════════════
+// WESTORAGE
+// ══════════════════════════════════════════════
+function renderWestorage(){
+  const keys=getKeys();
+  const labels=keys.map(sl);
+  const prevKeys=keys.map(priorKey).filter(k=>MONTHLY[k]);
+
+  const totAlm =sumK(keys,d=>d.wst_alm);
+  const totPack=sumK(keys,d=>d.wst_pack);
+  const totPick=sumK(keys,d=>d.wst_pick);
+  const totLleg=sumK(keys,d=>d.wst_lleg);
+  const totCour=sumK(keys,d=>d.wst_cour);
+  const totPP  =totPack+totPick;
+  const totVBN =sumK(keys,d=>d.ing_cp+d.ing_mp); // venta neta (sin IVA, directo del Excel)
+
+  const prevAlm =prevKeys.reduce((s,k)=>s+MONTHLY[k].wst_alm,0);
+  const prevPP  =prevKeys.reduce((s,k)=>s+MONTHLY[k].wst_pack+MONTHLY[k].wst_pick,0);
+  const prevLleg=prevKeys.reduce((s,k)=>s+MONTHLY[k].wst_lleg,0);
+  const prevVBN =prevKeys.reduce((s,k)=>s+(MONTHLY[k].ing_cp+MONTHLY[k].ing_mp),0);
+
+  const dAlm =deltaStr(totAlm,prevAlm);
+  const dPP  =deltaStr(totPP,prevPP);
+  const dLleg=deltaStr(totLleg,prevLleg);
+
+  // Indicador principal: (Almacenaje + Llegada mercadería) / venta neta
+  const indCurr= totVBN>0?(totAlm+totLleg)/totVBN*100:0;
+  const indPrev= prevVBN>0?(prevAlm+prevLleg)/prevVBN*100:null;
+  const dInd   = deltaPP(indCurr,indPrev);
+
+  const almPctKpi=totVBN>0?pct(totAlm/totVBN*100):'—';
+  const ppPctKpi =totVBN>0?pct(totPP/totVBN*100):'—';
+  const llegPctKpi=totVBN>0?pct(totLleg/totVBN*100):'—';
+
+  document.getElementById('wst-kpis').innerHTML=[
+    mkKpi('Almacenaje',fmt(totAlm),'var(--blue)',`${almPctKpi} s/venta neta`,dAlm.txt,dAlm.cls),
+    mkKpi('Packing + Picking',fmt(totPP),'var(--purple)',`${ppPctKpi} s/venta neta`,dPP.txt,dPP.cls),
+    mkKpi('Llegada mercadería',fmt(totLleg),'var(--amber)',`${llegPctKpi} s/venta neta`,dLleg.txt,dLleg.cls),
+    mkKpi('Courier Westorage',fmt(totCour),'var(--pink)'),
+    mkKpi('Total Westorage',fmt(totAlm+totPP+totLleg+totCour),'var(--muted)'),
+  ].join('');
+
+  document.getElementById('wstIndicator').innerHTML=`
+    <div>
+      <p class="wst-ind-lbl">Almacenaje + Llegada mercadería / Venta neta total</p>
+      <p class="wst-ind-val">${pct(indCurr)}</p>
+      <p class="wst-ind-delta" style="color:${dInd.cls==='pos'?'var(--red)':'var(--green)'}">
+        ${dInd.txt} vs año anterior ${indPrev!==null?'('+pct(indPrev)+')':''}
+      </p>
+    </div>
+    <div style="margin-left:auto;text-align:right;">
+      <p class="wst-ind-lbl">Alm+Llegada actual</p>
+      <p style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--blue)">${fmt(totAlm+totLleg)}</p>
+      <p class="wst-ind-lbl" style="margin-top:8px">Venta neta</p>
+      <p style="font-size:14px;font-family:'DM Mono',monospace;color:var(--muted)">${fmt(totVBN)}</p>
+    </div>
+  `;
+
+  // Gráficos
+  const almD =keys.map(k=>M(MONTHLY[k].wst_alm));
+  const ppD  =keys.map(k=>M(MONTHLY[k].wst_pack+MONTHLY[k].wst_pick));
+  const llegD=keys.map(k=>M(MONTHLY[k].wst_lleg));
+  const almPY=keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M(MONTHLY[pk].wst_alm):null;});
+  const ppPY =keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M(MONTHLY[pk].wst_pack+MONTHLY[pk].wst_pick):null;});
+  const llegPY=keys.map(k=>{const pk=priorKey(k);return MONTHLY[pk]?M(MONTHLY[pk].wst_lleg):null;});
+
+  // % sobre ventas netas por mes
+  const vnD=keys.map(k=>MONTHLY[k].ing_cp+MONTHLY[k].ing_mp);
+  const almPct=keys.map((k,i)=>vnD[i]>0?+(MONTHLY[k].wst_alm/vnD[i]*100).toFixed(2):0);
+  const ppPct =keys.map((k,i)=>vnD[i]>0?+((MONTHLY[k].wst_pack+MONTHLY[k].wst_pick)/vnD[i]*100).toFixed(2):0);
+  const llegPct=keys.map((k,i)=>vnD[i]>0?+(MONTHLY[k].wst_lleg/vnD[i]*100).toFixed(2):0);
+
+  mkChart('cWstAlm', wstChartPct(labels,almD, almPY, '#4d9eff',almPct, keys));
+  mkChart('cWstPP',  wstChartPct(labels,ppD,  ppPY,  '#a47cff',ppPct,  keys));
+  mkChart('cWstLleg',wstChartPct(labels,llegD,llegPY,'#f5a623',llegPct,keys));
+
+  // Tabla resumen
+  const cats2=[
+    {lbl:'Almacenaje Westorage',curr:totAlm,prev:prevAlm},
+    {lbl:'Packing + Picking',   curr:totPP,prev:prevPP},
+    {lbl:'Llegada mercadería',  curr:totLleg,prev:prevLleg},
+    {lbl:'Courier Westorage',   curr:totCour,prev:prevKeys.reduce((s,k)=>s+MONTHLY[k].wst_cour,0)},
+    {lbl:'Total Westorage',     curr:totAlm+totPP+totLleg+totCour,prev:prevAlm+prevPP+prevLleg+prevKeys.reduce((s,k)=>s+MONTHLY[k].wst_cour,0)},
+  ];
+  const wstRows=cats2.map(c=>{
+    const d=deltaStr(c.curr,c.prev);
+    return `<tr>
+      <td>${c.lbl}</td>
+      <td class="td-r td-num">${fmt(c.curr)}</td>
+      <td class="td-r td-num">${c.prev?fmt(c.prev):'—'}</td>
+      <td class="td-r ${d.cls==='pos'?'td-pos':d.cls==='neg'?'td-neg':''}">${d.txt}</td>
+    </tr>`;
+  });
+  document.getElementById('tblWst').innerHTML=`
+    <thead><tr><th>Cuenta</th><th class="td-r">Actual</th><th class="td-r">Año ant.</th><th class="td-r">Var %</th></tr></thead>
+    <tbody>${wstRows.join('')}</tbody>`;
+}
+
+function wstChart(labels,curr,prev,color,keys){
+  return {type:'bar',data:{labels,datasets:[
+    {label:'Año anterior',data:prev,backgroundColor:'rgba(107,107,138,0.25)',borderColor:'#6b6b8a',borderWidth:1},
+    {label:'Actual',      data:curr,backgroundColor:color+'55',borderColor:color,borderWidth:1},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ttM}}},
+    scales:{x:xO(keys),y:yO(v=>v+'M')}}};
+}
+function wstChartPct(labels,curr,prev,color,pctData,keys){
+  const wstValPlugin={
+    id:'wstVal_'+color,
+    afterDatasetsDraw(chart){
+      const ctx2=chart.ctx; ctx2.save();
+      // curr bars (dataset index 1)
+      const meta=chart.getDatasetMeta(1);
+      if(meta.visible){
+        meta.data.forEach((bar,i)=>{
+          const v=curr[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#eaeaf5';
+          ctx2.fillText('$'+v.toFixed(1)+'M',bar.x,bar.y-4);
+        });
+      }
+      // pct line labels (dataset index 2)
+      const metaL=chart.getDatasetMeta(2);
+      if(metaL.visible){
+        metaL.data.forEach((pt,i)=>{
+          const v=pctData[i];
+          if(v===null||v===undefined) return;
+          ctx2.font='bold 9px DM Sans,sans-serif';
+          ctx2.textAlign='center';
+          ctx2.fillStyle='#2dd4bf';
+          ctx2.fillText(v.toFixed(2)+'%',pt.x,pt.y-6);
+        });
+      }
+      ctx2.restore();
+    }
+  };
+  return {type:'bar',data:{labels,datasets:[
+    {label:'Año anterior',data:prev,backgroundColor:'rgba(107,107,138,0.25)',borderColor:'#6b6b8a',borderWidth:1,order:3},
+    {label:'Actual',      data:curr,backgroundColor:color+'55',borderColor:color,borderWidth:1,order:2},
+    {label:'% venta neta',data:pctData,type:'line',borderColor:'#2dd4bf',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#2dd4bf',yAxisID:'yPct',order:1},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    layout:{padding:{top:18}},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label==='% venta neta'?`${c.raw}%`:`$${c.raw}M`}}},
+    scales:{
+      x:xO(keys),
+      y:{...yO(v=>v+'M'),position:'left'},
+      yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false},min:0},
+    }},
+  plugins:[wstValPlugin]};
+}
+
+// ══════════════════════════════════════════════
+// PLAN 2026
+// ══════════════════════════════════════════════
+function renderPlan(){
+  // Solo datos 2026
+  const keys2026 = ALL_KEYS.filter(k=>k.startsWith('2026-'));
+  const mesesConData = keys2026.map(k=>k.split('-')[1]);
+
+  // Todos los meses del plan para la tabla completa
+  const todosMeses = MESES;
+  const labels = todosMeses.map(m=>m.charAt(0).toUpperCase()+m.slice(1,3));
+
+  // Armar datos mes a mes
+  let acumReal=0, acumPlan=0;
+  const rows = [];
+  const chartReal=[], chartPlan=[], chartCump=[];
+
+  todosMeses.forEach(mes=>{
+    const plan = PLAN_2026[mes] || 0;
+    const key2026 = `2026-${mes}`;
+    const d = MONTHLY[key2026];
+    // Venta bruta real = VN * 1.19
+    const realVN = d ? d.ing_cp + d.ing_mp : null;
+    const real   = realVN !== null ? realVN * 1.19 : null;
+
+    const cump   = (real !== null && plan > 0) ? real/plan*100 : null;
+    const diff   = (real !== null) ? real - plan : null;
+
+    acumPlan += plan;
+    if(real !== null) acumReal += real;
+    const acumCump = (acumPlan > 0 && acumReal > 0) ? acumReal/acumPlan*100 : null;
+    const acumDiff = (real !== null) ? acumReal - acumPlan : null;
+
+    chartReal.push(real !== null ? M(real) : null);
+    chartPlan.push(M(plan));
+    chartCump.push(cump !== null ? +cump.toFixed(1) : null);
+
+    rows.push({mes, plan, real, cump, diff, acumCump, acumDiff, hasData: real!==null});
+  });
+
+  // KPIs resumen
+  const mesesReales = rows.filter(r=>r.hasData);
+  const totalReal = mesesReales.reduce((s,r)=>s+r.real,0);
+  const totalPlan = mesesReales.reduce((s,r)=>s+r.plan,0);
+  const cumpTotal = totalPlan>0 ? totalReal/totalPlan*100 : 0;
+  const diffTotal = totalReal - totalPlan;
+  const planAnual = Object.values(PLAN_2026).reduce((s,v)=>s+v,0);
+  const avanceAnual = planAnual>0 ? totalReal/planAnual*100 : 0;
+
+  document.getElementById('plan-kpis').innerHTML=[
+    mkKpi('Real acumulado',fmt(totalReal),'var(--blue)',`${mesesReales.length} meses`),
+    mkKpi('Plan acumulado',fmt(totalPlan),'var(--amber)',`${mesesReales.length} meses`),
+    mkKpi('Cumplimiento',pct(cumpTotal),cumpTotal>=100?'var(--green)':'var(--red)',`${cumpTotal>=100?'▲ sobre':'▼ bajo'} plan`),
+    mkKpi('Diferencia acum.',fmt(Math.abs(diffTotal)),diffTotal>=0?'var(--green)':'var(--red)',diffTotal>=0?'sobre plan':'bajo plan'),
+    mkKpi('Avance plan anual',pct(avanceAnual),'var(--teal)',`Plan año: ${fmt(planAnual)}`),
+  ].join('');
+
+  // Gráfico: barras Real + Plan + línea cumplimiento %
+  const cumplPlugin={
+    id:'cumplLabels',
+    afterDatasetsDraw(chart){
+      const meta=chart.getDatasetMeta(2); // línea cumplimiento
+      if(!meta.visible) return;
+      const ctx2=chart.ctx; ctx2.save();
+      meta.data.forEach((pt,i)=>{
+        const v=chartCump[i];
+        if(v===null) return;
+        ctx2.font='bold 9px DM Sans,sans-serif';
+        ctx2.textAlign='center';
+        ctx2.fillStyle=v>=100?'#22d09a':'#f05252';
+        ctx2.fillText(v.toFixed(1)+'%',pt.x,pt.y-6);
+      });
+      ctx2.restore();
+    }
+  };
+
+  mkChart('cPlan',{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Plan 2026',  data:chartPlan,backgroundColor:'#f5a62333',borderColor:'#f5a623',borderWidth:1,borderDash:[4,3],order:2},
+      {label:'Real 2026',  data:chartReal,backgroundColor:'#4d9eff55',borderColor:'#4d9eff',borderWidth:1,order:2},
+      {label:'Cumplimiento %',data:chartCump,type:'line',borderColor:'#22d09a',backgroundColor:'transparent',
+       borderWidth:2,pointRadius:4,pointBackgroundColor:chartCump.map(v=>v===null?'transparent':v>=100?'#22d09a':'#f05252'),
+       yAxisID:'yPct',order:1,spanGaps:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:20}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label==='Cumplimiento %'?(c.raw===null?'—':`${c.raw}%`):`$${c.raw}M`}}},
+      scales:{
+        x:xO(todosMeses),
+        y:{...yO(v=>v+'M'),position:'left'},
+        yPct:{...yO(v=>v+'%'),position:'right',grid:{display:false},min:0},
+      }
+    },
+    plugins:[cumplPlugin]
+  });
+
+  // Tabla detalle
+  const tblRows = rows.map(r=>{
+    const cumpCls = r.cump===null?'':r.cump>=100?'td-pos':'td-neg';
+    const diffCls = r.diff===null?'':r.diff>=0?'td-pos':'td-neg';
+    const acumCumpCls = r.acumCump===null?'':r.acumCump>=100?'td-pos':'td-neg';
+    const acumDiffCls = r.acumDiff===null?'':r.acumDiff>=0?'td-pos':'td-neg';
+    return `<tr style="${!r.hasData?'color:var(--muted)':''}">
+      <td>${r.mes.charAt(0).toUpperCase()+r.mes.slice(1)}</td>
+      <td class="td-r td-num">${fmt(r.plan)}</td>
+      <td class="td-r td-num">${r.real!==null?fmt(r.real):'—'}</td>
+      <td class="td-r ${cumpCls}">${r.cump!==null?r.cump.toFixed(1)+'%':'—'}</td>
+      <td class="td-r ${diffCls}">${r.diff!==null?(r.diff>=0?'+':'')+fmt(r.diff):'—'}</td>
+      <td class="td-r ${acumCumpCls}">${r.acumCump!==null?r.acumCump.toFixed(1)+'%':'—'}</td>
+      <td class="td-r ${acumDiffCls}">${r.acumDiff!==null?(r.acumDiff>=0?'+':'')+fmt(r.acumDiff):'—'}</td>
+    </tr>`;
+  });
+
+  // Fila total
+  const totCumpCls = cumpTotal>=100?'td-pos':'td-neg';
+  const totDiffCls = diffTotal>=0?'td-pos':'td-neg';
+  tblRows.push(`<tr style="border-top:1px solid var(--border2);font-weight:600;">
+    <td>TOTAL</td>
+    <td class="td-r td-num">${fmt(totalPlan)}</td>
+    <td class="td-r td-num">${fmt(totalReal)}</td>
+    <td class="td-r ${totCumpCls}">${cumpTotal.toFixed(1)}%</td>
+    <td class="td-r ${totDiffCls}">${(diffTotal>=0?'+':'')+fmt(diffTotal)}</td>
+    <td class="td-r ${totCumpCls}">${cumpTotal.toFixed(1)}%</td>
+    <td class="td-r ${totDiffCls}">${(diffTotal>=0?'+':'')+fmt(diffTotal)}</td>
+  </tr>`);
+
+  document.getElementById('tblPlan').innerHTML=`
+    <thead><tr>
+      <th>Mes</th>
+      <th class="td-r">Plan 2026</th>
+      <th class="td-r">Real 2026</th>
+      <th class="td-r">Cumplimiento</th>
+      <th class="td-r">Diferencia</th>
+      <th class="td-r">Acum. Cumpl.</th>
+      <th class="td-r">Acum. Dif.</th>
+    </tr></thead>
+    <tbody>${tblRows.join('')}</tbody>`;
+}
+</script>
+</body>
+</html>
